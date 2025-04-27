@@ -1,0 +1,692 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online School System</title>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- jsPDF core -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- jsPDF autoTable plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha512-2/YdOMV+qvjOQellQm5+L9j7m3NEOhoCyI3RZUfDy97GWoLhU/TWj9G8gcJJgehRt3cT7R+G37cqj3SjFSMWew==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- QR Code Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ0/BEANujqms2mGPPinlNxSpeWYhAW9QXGTAFdUYVHpLKMnDBB5MaTUUkxtLKLhsPoeMAHYA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --primary-color: #3498db; --secondary-color: #2ecc71; --accent-color: #e74c3c;
+            --background-color: #ecf0f1; --text-color: #34495e; --card-bg: #ffffff;
+            --sidebar-bg: #2c3e50; --sidebar-text: #ecf0f1; --sidebar-hover: #34495e; --sidebar-active: var(--primary-color);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); --border-radius: 6px;
+            --error-color: #e74c3c; --success-color: #2ecc71; --warning-color: #f39c12; --info-color: #3498db;
+            --header-height: 60px; --sidebar-width: 240px; --sidebar-width-collapsed: 70px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+        html { scroll-behavior: smooth; }
+        body { background-color: var(--background-color); color: var(--text-color); display: flex; overflow-x: hidden; }
+
+        /* Loading, Login, Premium (Same as before) */
+        #loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(255,255,255,0.85);display:flex;justify-content:center;align-items:center;z-index:9999;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease}#loading-overlay.show{opacity:1;visibility:visible}.spinner{width:45px;height:45px;border:5px solid rgba(0,0,0,.1);border-left-color:var(--primary-color);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}#login-container{width:100%;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(135deg,#6dd5ed,#2193b0);position:fixed;top:0;left:0;z-index:5000;transition:opacity .5s ease,visibility .5s ease}#login-container.hidden{opacity:0;visibility:hidden}#login-section{background-color:var(--card-bg);padding:40px 50px;border-radius:var(--border-radius);box-shadow:0 10px 25px rgba(0,0,0,.2);text-align:center;width:90%;max-width:420px;animation:fadeInLogin .6s ease-out}#login-section h2{color:var(--primary-color);margin-bottom:30px;font-family:'Titillium Web',sans-serif;font-weight:700;font-size:2rem;display:flex;align-items:center;justify-content:center;gap:10px}#login-section h2 i{opacity:.8}.input-group{margin-bottom:20px;position:relative;text-align:left}.input-group i.fa-input-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--primary-color);opacity:.6}.input-group input{width:100%;padding:14px 15px 14px 45px;border:1px solid #ccc;border-radius:var(--border-radius);font-size:1rem;transition:border-color .3s ease,box-shadow .3s ease;background-color:#fdfdfd}.input-group input:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(52,152,219,.2)}.login-button{background:linear-gradient(45deg,var(--primary-color),#5dade2);color:#fff;padding:14px 25px;border:none;border-radius:var(--border-radius);font-size:1.1rem;cursor:pointer;transition:all .3s ease;width:100%;box-shadow:0 4px 8px rgba(0,0,0,.15);font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-transform:uppercase;letter-spacing:.5px}.login-button:hover{background:linear-gradient(45deg,#2980b9,var(--primary-color));box-shadow:0 6px 12px rgba(0,0,0,.2);transform:translateY(-2px)}.login-button:active{transform:translateY(0);box-shadow:0 2px 5px rgba(0,0,0,.15)}#login-message{margin-top:20px;font-weight:500;min-height:20px}#premium-info-section{display:none;background:var(--card-bg);padding:40px 50px;border-radius:var(--border-radius);box-shadow:0 10px 25px rgba(0,0,0,.2);text-align:center;width:90%;max-width:550px;color:var(--text-color);border-left:5px solid var(--warning-color);animation:fadeInLogin .6s ease-out}#premium-info-section h2{color:var(--warning-color);margin-bottom:15px;font-size:1.8rem;font-family:'Titillium Web',sans-serif;font-weight:700}#premium-info-section p{margin-bottom:25px;line-height:1.6;font-size:1rem}.back-to-login-btn{background:var(--warning-color);color:#fff;padding:11px 25px;border:none;border-radius:var(--border-radius);font-size:1rem;cursor:pointer;transition:all .3s ease;font-weight:600;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 5px rgba(0,0,0,.1)}.back-to-login-btn:hover{background-color:#d48c0a;transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,.15)}.back-to-login-btn:active{transform:translateY(0);box-shadow:0 2px 5px rgba(0,0,0,.1)}@keyframes fadeInLogin{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+        /* --- Main App Structure --- */
+        #app-container { display: flex; width: 100%; opacity: 0; visibility: hidden; transition: opacity .5s ease, visibility .5s ease; }
+        #app-container.visible { opacity: 1; visibility: visible; }
+
+        /* --- Sidebar --- */
+        #sidebar{width:var(--sidebar-width);height:100vh;background-color:var(--sidebar-bg);color:var(--sidebar-text);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:1000;transition:width .3s ease,left .3s ease;overflow-y:auto;overflow-x:hidden}#sidebar.collapsed{width:var(--sidebar-width-collapsed)}#sidebar .sidebar-header{padding:15px;display:flex;align-items:center;justify-content:center;height:var(--header-height);border-bottom:1px solid rgba(236,240,241,.1);white-space:nowrap}#sidebar .sidebar-header .logo-icon{font-size:1.8rem;color:var(--primary-color);margin-right:10px;transition:margin .3s ease}#sidebar .sidebar-header .logo-text{font-family:'Titillium Web',sans-serif;font-size:1.5rem;font-weight:700;opacity:1;transition:opacity .3s ease}#sidebar.collapsed .logo-icon{margin-right:0}#sidebar.collapsed .logo-text{opacity:0;width:0;overflow:hidden}#sidebar .sidebar-menu{list-style:none;padding:15px 0;flex-grow:1}#sidebar .sidebar-menu li{white-space:nowrap}#sidebar .sidebar-menu li a,#sidebar .sidebar-menu li .menu-item{display:flex;align-items:center;padding:12px 20px;color:var(--sidebar-text);text-decoration:none;transition:background-color .2s ease,color .2s ease;cursor:pointer;border-left:4px solid transparent}#sidebar .sidebar-menu li a i,#sidebar .sidebar-menu li .menu-item i{font-size:1.1rem;margin-right:15px;width:25px;text-align:center;transition:font-size .3s ease}#sidebar .sidebar-menu li span.menu-text{opacity:1;transition:opacity .2s ease .1s;font-size:.95rem}#sidebar .sidebar-menu li a:hover,#sidebar .sidebar-menu li .menu-item:hover{background-color:var(--sidebar-hover)}#sidebar .sidebar-menu li.active>a,#sidebar .sidebar-menu li.active>.menu-item{background-color:var(--sidebar-active);color:#fff;border-left-color:var(--secondary-color);font-weight:500}#sidebar.collapsed .sidebar-menu li a,#sidebar.collapsed .sidebar-menu li .menu-item{justify-content:center;padding:12px 10px}#sidebar.collapsed .sidebar-menu li a i,#sidebar.collapsed .sidebar-menu li .menu-item i{margin-right:0;font-size:1.4rem}#sidebar.collapsed .sidebar-menu li span.menu-text{opacity:0;position:absolute;width:0;height:0;overflow:hidden}#sidebar .sidebar-divider{height:1px;background-color:rgba(236,240,241,.1);margin:15px 20px}#sidebar.collapsed .sidebar-divider{margin:15px 10px}#sidebar .sidebar-footer{padding:15px 20px;border-top:1px solid rgba(236,240,241,.1);text-align:center}#sidebar #sidebar-toggle{background:none;border:none;color:var(--sidebar-text);font-size:1.3rem;cursor:pointer;padding:5px;transition:transform .3s ease}#sidebar #sidebar-toggle:hover{color:var(--primary-color);transform:scale(1.1)}#sidebar.collapsed .sidebar-footer{padding:15px 10px}
+
+        /* --- Main Content & Header --- */
+        #main-content{flex-grow:1;height:100vh;overflow-y:auto;margin-left:var(--sidebar-width);padding-top:var(--header-height);padding-bottom:30px;transition:margin-left .3s ease}#sidebar.collapsed+#main-content{margin-left:var(--sidebar-width-collapsed)}#top-header{position:fixed;top:0;left:var(--sidebar-width);right:0;height:var(--header-height);background-color:var(--card-bg);box-shadow:0 2px 5px rgba(0,0,0,.08);z-index:900;display:flex;align-items:center;padding:0 25px;justify-content:space-between;transition:left .3s ease}#sidebar.collapsed~#top-header{left:var(--sidebar-width-collapsed)}.header-title{font-family:'Titillium Web',sans-serif;font-size:1.5rem;font-weight:600;color:var(--primary-color)}.header-actions{display:flex;align-items:center;gap:10px}.header-actions button{background:none;border:1px solid #ccc;color:var(--text-color);font-size:.85rem;cursor:pointer;margin-left:5px;padding:5px 10px;border-radius:var(--border-radius);transition:all .2s ease;display:inline-flex;align-items:center;gap:5px}.header-actions button:hover{background-color:#eee;border-color:#bbb}.header-actions button.logout-button{border-color:var(--accent-color);color:var(--accent-color)}.header-actions button.logout-button:hover{background-color:var(--accent-color);color:#fff}
+
+        /* --- Content Wrapper & Views --- */
+        .content-wrapper{padding:25px;max-width:100%}.view-section{display:none;animation:fadeInView .5s ease-out;background-color:var(--card-bg);padding:25px;border-radius:var(--border-radius);box-shadow:var(--shadow);margin-bottom:30px}.view-section.active{display:block}.view-header{font-family:'Titillium Web',sans-serif;font-size:1.6rem;font-weight:600;color:var(--primary-color);margin-bottom:25px;padding-bottom:15px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;gap:10px}.view-header .title-text{display:flex;align-items:center;gap:10px}.view-header .title-text i{opacity:.8}.view-header .header-action-buttons button{font-size:.9rem;padding:6px 12px}@keyframes fadeInView{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+        /* --- Data Table Styles --- */
+        .data-table-container{max-height:65vh;overflow:auto;border:1px solid #e8e8e8;border-radius:var(--border-radius);box-shadow:0 1px 3px rgba(0,0,0,.05)}.data-table{width:100%;border-collapse:collapse;font-size:.9rem}.data-table th,.data-table td{padding:10px 12px;text-align:left;border-bottom:1px solid #eee;white-space:nowrap;vertical-align:middle}.data-table th{background-color:#f8f9fa;font-weight:600;color:var(--primary-color);position:sticky;top:0;z-index:10;box-shadow:inset 0 -1px 0 #e8e8e8}.data-table tbody tr:nth-child(even){background-color:#fdfdfd}.data-table tbody tr:hover{background-color:#eef5fc}.data-table .action-col{text-align:center;white-space:nowrap}.data-table .edit-btn-generic,.data-table .edit-btn{color:var(--primary-color);cursor:pointer;font-size:1.1rem;transition:color .3s ease,transform .2s ease;padding:5px;display:inline-block}.data-table .edit-btn-generic:hover,.data-table .edit-btn:hover{color:var(--secondary-color);transform:scale(1.1)}.data-table .student-photo,.data-table .student-photo-placeholder{width:35px;height:35px;border-radius:50%;object-fit:cover;vertical-align:middle;border:1px solid #eee;background-color:#e0e0e0;display:inline-flex;align-items:center;justify-content:center;color:#999;font-size:1rem}
+
+        /* --- Specific View Styles (Students, Add Results) --- */
+        #student-list-view .filter-controls{margin-bottom:20px;padding:15px;background-color:#f9f9f9;border-radius:var(--border-radius);display:flex;align-items:center;gap:15px;flex-wrap:wrap}#student-list-view .filter-controls label{font-weight:500;display:flex;align-items:center;gap:5px;color:#555}#student-list-view .filter-controls select{padding:8px 12px;border:1px solid #ccc;border-radius:var(--border-radius);min-width:180px;font-size:.95rem;cursor:pointer;background-color:#fff}#student-list-view .filter-controls select:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(52,152,219,.2)}#student-list-view .student-table-container{max-height:calc(100vh - 300px)} /* Adjust height */
+        #add-results-view .form-step{margin-bottom:25px;padding:25px 30px;background-color:#fdfdfd;border:1px solid #e8e8e8;border-radius:var(--border-radius);animation:fadeIn .4s ease-out;box-shadow:0 1px 3px rgba(0,0,0,.05)}#add-results-view .form-step h4{margin-bottom:20px;color:var(--primary-color);font-size:1.2rem;font-weight:600;border-bottom:1px solid #eee;padding-bottom:10px}#add-results-view .input-group{margin-bottom:20px}#add-results-view .input-group label{display:block;margin-bottom:6px;font-weight:500;color:#555;font-size:.9rem}#add-results-view .input-group input,#add-results-view .input-group select{width:100%;padding:10px 12px;border:1px solid #ccc;border-radius:var(--border-radius);font-size:.95rem;transition:border-color .3s ease,box-shadow .3s ease}#add-results-view .input-group input:focus,#add-results-view .input-group select:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(52,152,219,.2)}#add-results-view .subject-entry{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;margin-bottom:12px;padding:12px;background-color:#f9f9f9;border-radius:var(--border-radius);border:1px solid #eee}#add-results-view .subject-entry input{padding:9px;border:1px solid #ccc;border-radius:var(--border-radius);font-size:.9rem}#add-results-view .subject-entry input.marks-input{width:80px;text-align:center}#add-results-view .remove-subject-btn{background:none;border:none;color:var(--error-color);font-size:1.3rem;cursor:pointer;transition:color .3s ease,transform .2s ease;padding:0 5px;line-height:1;opacity:.7}#add-results-view .remove-subject-btn:hover{color:#c0392b;transform:scale(1.1);opacity:1}#add-results-view .add-subject-btn{background-color:var(--secondary-color);color:#fff;padding:8px 15px;border:none;border-radius:var(--border-radius);font-size:.9rem;cursor:pointer;transition:all .3s ease;margin-top:10px;font-weight:500;display:inline-flex;align-items:center;gap:6px}#add-results-view .add-subject-btn:hover{background-color:#27ae60;transform:translateY(-2px);box-shadow:0 2px 4px rgba(0,0,0,.1)}#add-results-view .step-navigation{display:flex;justify-content:space-between;margin-top:25px;padding-top:20px;border-top:1px solid #eee;flex-wrap:wrap;gap:10px}#add-results-view .step-navigation button{padding:10px 22px;border:none;border-radius:var(--border-radius);font-size:1rem;cursor:pointer;transition:all .3s ease;font-weight:500;display:inline-flex;align-items:center;gap:8px}#add-results-view .step-navigation button:hover{transform:translateY(-2px);box-shadow:0 3px 6px rgba(0,0,0,.1)}#add-results-view .next-step-btn,#add-results-view .submit-result-btn{background-color:var(--primary-color);color:#fff}#add-results-view .next-step-btn:hover,#add-results-view .submit-result-btn:hover{background-color:#2980b9}#add-results-view .prev-step-btn{background-color:#95a5a6;color:#fff}#add-results-view .prev-step-btn:hover{background-color:#7f8c8d}#add-results-view #results-student-list{margin-top:15px;max-height:40vh;overflow-y:auto;padding-right:5px;border:1px solid #eee;border-radius:var(--border-radius);background-color:#fff}#add-results-view .student-result-item{display:flex;align-items:center;padding:10px 15px;margin:0;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background-color .2s ease;position:relative}#add-results-view .student-result-item:last-child{border-bottom:none}#add-results-view .student-result-item:hover{background-color:#eef5fc}#add-results-view .student-result-item.selected{background-color:#d4e6fa;font-weight:500}#add-results-view .student-result-item.selected::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background-color:var(--primary-color)}#add-results-view .student-result-item img{width:40px;height:40px;border-radius:50%;margin-right:15px;object-fit:cover;border:1px solid #eee}#add-results-view .student-result-item .student-photo-placeholder{width:40px;height:40px;margin-right:15px}#add-results-view .student-result-info span{display:block;font-size:.9rem;color:#555;line-height:1.4}#add-results-view .student-result-info span strong{color:var(--text-color);font-weight:600;font-size:.95rem}#add-results-view .result-saved-indicator{margin-left:auto;color:var(--success-color);font-size:1.1rem;opacity:0;transition:opacity .3s ease}#add-results-view .student-result-item.has-result .result-saved-indicator{opacity:1}#add-results-view #marks-entry-container{margin-top:20px;padding:20px;border:1px solid #e0e0e0;border-radius:var(--border-radius);background-color:#fdfdfd;box-shadow:0 1px 3px rgba(0,0,0,.05)}#add-results-view #marks-entry-container h5{margin-bottom:15px;color:var(--primary-color);font-size:1.1rem;font-weight:600;border-bottom:1px solid #eee;padding-bottom:10px}#add-results-view #marks-entry-container h5 strong{color:var(--secondary-color);font-weight:700}#add-results-view #marks-entry-form .marks-input-group{display:grid;grid-template-columns:1fr auto;gap:10px 15px;align-items:center;margin-bottom:12px}#add-results-view #marks-entry-form .marks-input-group label{font-weight:500;font-size:.95rem;text-align:right;color:#444}#add-results-view #marks-entry-form .marks-input-group label .max-marks{font-size:.8em;font-weight:400;color:#888}#add-results-view #marks-entry-form .marks-input-group input{padding:9px;border:1px solid #ccc;border-radius:var(--border-radius);width:100px;text-align:center;font-size:.95rem}#add-results-view #marks-entry-form .marks-input-group input:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 2px rgba(52,152,219,.15)}#add-results-view #marks-entry-form .marks-input-group input.invalid{border-color:var(--error-color);background-color:#fdecea}#add-results-view #marks-entry-message{margin-top:15px;font-weight:500;min-height:20px}
+
+        /* --- ID Card Generator View --- */
+        #id-card-view .action-bar { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; }
+        #id-card-view .action-bar button { padding: 8px 15px; font-size: 0.95rem; }
+        #id-card-preview-area {
+            display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;
+            margin-top: 20px; padding: 20px; background-color: #f0f0f0; border-radius: var(--border-radius);
+            min-height: 100px; max-height: 70vh; overflow-y: auto;
+        }
+        .id-card {
+            background-color: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            width: 320px; /* Adjust width as needed */ padding: 15px;
+            border-top: 5px solid var(--primary-color); position: relative;
+            font-family: 'Titillium Web', sans-serif; line-height: 1.4; font-size: 13px; /* Base size */
+             page-break-inside: avoid; /* Prevent breaking during print */
+        }
+         .id-card-header { text-align: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+         .id-card-header h4 { color: var(--primary-color); font-size: 1.1rem; margin-bottom: 2px; font-weight: 700; }
+         .id-card-header span { font-size: 0.8rem; color: #777; }
+         .id-card-body { display: flex; gap: 15px; align-items: center; }
+         .id-card-photo { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; flex-shrink: 0; }
+          .id-card-photo-placeholder { width: 80px; height: 80px; border-radius: 5px; background-color: #e0e0e0; flex-shrink: 0; display:flex; align-items:center; justify-content:center; color:#999; font-size:2rem;}
+         .id-card-details { flex-grow: 1; }
+         .id-card-details p { margin-bottom: 4px; }
+         .id-card-details strong { font-weight: 600; color: #333; margin-right: 5px; }
+         .id-card-qr-code { position: absolute; bottom: 10px; right: 10px; }
+         .id-card-qr-code canvas, .id-card-qr-code img { width: 50px !important; height: 50px !important; } /* Control QR size */
+         /* Styles for Printing ID Cards */
+         @media print {
+             body * { visibility: hidden; } /* Hide everything */
+              #id-card-print-container, #id-card-print-container * { visibility: visible; } /* Show only cards */
+              #id-card-print-container { position: absolute; left: 0; top: 0; width: 100%; padding: 1cm; /* Add margins */ }
+               .id-card { box-shadow: none; border: 1px solid #ccc; margin-bottom: 1cm; /* Spacing between cards */ }
+                #id-card-preview-area { overflow: visible; max-height: none; background: none; padding: 0; margin: 0; }
+         }
+         #id-card-print-container { display: none; } /* Hidden container for printing */
+
+
+        /* --- Modal Styles --- */
+        .modal{display:none;position:fixed;z-index:2000;left:0;top:0;width:100%;height:100%;overflow:auto;background-color:rgba(0,0,0,.6);animation:fadeInModalBg .3s ease-out;padding-top:5vh;padding-bottom:5vh}@keyframes fadeInModalBg{from{opacity:0}to{opacity:1}}.modal-content{background-color:var(--card-bg);margin:0 auto;padding:0;border:none;width:90%;max-width:700px;border-radius:var(--border-radius);box-shadow:0 5px 20px rgba(0,0,0,.2);position:relative;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;animation:zoomInModal .3s ease-out}@keyframes zoomInModal{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}.modal-content.modal-lg{max-width:900px}.modal-header{display:flex;justify-content:space-between;align-items:center;padding:18px 30px;border-bottom:1px solid #eee;background-color:#f8f9fa;border-top-left-radius:var(--border-radius);border-top-right-radius:var(--border-radius)}.modal-header h3{color:var(--primary-color);font-size:1.3rem;font-family:'Titillium Web',sans-serif;display:flex;align-items:center;gap:10px;font-weight:600}.modal-header h3 i{opacity:.8}.close-btn{color:#aaa;background:none;border:none;font-size:1.8rem;font-weight:700;cursor:pointer;transition:color .3s ease,transform .2s ease;line-height:1;padding:0 5px}.close-btn:hover,.close-btn:focus{color:var(--error-color);transform:rotate(90deg);outline:none}.modal-body{overflow-y:auto;padding:25px 30px;flex-grow:1}.modal-body .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px 20px}.modal-body .input-group{margin-bottom:0}.modal-body .input-group label{display:block;margin-bottom:5px;font-weight:500;color:#555;font-size:.9rem}.modal-body .input-group input,.modal-body .input-group select,.modal-body .input-group textarea{width:100%;padding:10px 12px;border:1px solid #ccc;border-radius:var(--border-radius);font-size:.95rem}.modal-body .input-group input:focus,.modal-body .input-group select:focus,.modal-body .input-group textarea:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(52,152,219,.2)}.modal-body .input-group textarea{min-height:80px;resize:vertical}.modal-footer{padding:15px 30px;border-top:1px solid #eee;text-align:right;background-color:#f8f9fa;border-bottom-left-radius:var(--border-radius);border-bottom-right-radius:var(--border-radius)}.modal-footer button{padding:10px 20px;border-radius:var(--border-radius);cursor:pointer;font-size:.95rem;margin-left:10px;transition:all .3s ease;font-weight:500;border:none;display:inline-flex;align-items:center;gap:6px}.modal-footer .save-btn{background-color:var(--success-color);color:#fff}.modal-footer .save-btn:hover{background-color:#27ae60;transform:translateY(-2px);box-shadow:0 2px 5px rgba(0,0,0,.1)}.modal-footer .save-btn:active{transform:translateY(0);box-shadow:none}.modal-footer .cancel-btn{background-color:#bdc3c7;color:#fff}.modal-footer .cancel-btn:hover{background-color:#95a5a6;transform:translateY(-2px)}.modal-footer .cancel-btn:active{transform:translateY(0)}.modal-footer .message{margin:0 0 10px 0;text-align:left}
+
+        /* --- Message Styles --- */
+        .message{padding:10px 15px;border-radius:var(--border-radius);margin:15px 0;font-weight:500;text-align:left;border-width:1px;border-style:solid;display:flex;align-items:center;gap:10px;font-size:.9rem}.message i.fa-message-icon{font-size:1.1em}.message.error{background-color:#f8d7da;color:#721c24;border-color:#f5c6cb}.message.success{background-color:#d4edda;color:#155724;border-color:#c3e6cb}.message.info{background-color:#d1ecf1;color:#0c5460;border-color:#bee5eb}.message.warning{background-color:#fff3cd;color:#856404;border-color:#ffeeba}
+
+        /* Utility & Responsive */
+        .hidden{display:none!important}
+        @media (max-width: 768px){:root{--sidebar-width:200px;--sidebar-width-collapsed:0}#sidebar{position:fixed;left:calc(-1 * var(--sidebar-width));z-index:1100}#sidebar.open{left:0}#sidebar.collapsed{width:0;left:calc(-1 * var(--sidebar-width))}#main-content{margin-left:0!important}#top-header{left:0!important;padding:0 15px}.header-title{font-size:1.3rem}#sidebar-toggle-mobile{display:block;margin-right:10px}#sidebar-toggle{display:none}.content-wrapper{padding:15px}.view-section{padding:20px}.view-header{font-size:1.4rem;margin-bottom:20px}.data-table th,.data-table td{padding:8px 10px;font-size:.85rem}.modal-content{width:95%;max-width:95%}.modal-body .form-grid{grid-template-columns:1fr}.modal-header{padding:15px 20px}.modal-body{padding:20px}.modal-footer{padding:12px 20px}.modal-footer button{font-size:.9rem;padding:8px 15px}#add-results-view .step-navigation{flex-direction:column;align-items:stretch}#add-results-view .step-navigation button{width:100%}#add-results-view .step-navigation .prev-step-btn{margin-bottom:10px} #id-card-preview-area{max-height:60vh;} .id-card{width:90%;}}
+
+    </style>
+</head>
+<body>
+
+    <div id="loading-overlay"><div class="spinner"></div></div>
+
+    <div id="login-container">
+        <div id="login-section">
+            <h2><i class="fas fa-school"></i> School Portal</h2>
+            <form id="login-form" novalidate>
+                <div class="input-group"><i class="fas fa-mobile-alt fa-input-icon"></i><input type="tel" id="mobile" placeholder="Mobile Number" required></div>
+                <div class="input-group"><i class="fas fa-lock fa-input-icon"></i><input type="password" id="password" placeholder="Password" required></div>
+                <button type="submit" class="login-button"><i class="fas fa-sign-in-alt"></i> Login</button>
+            </form>
+            <div id="login-message" class="message error" style="display: none;"></div>
+        </div>
+         <div id="premium-info-section">
+             <h2><i class="fas fa-exclamation-triangle"></i> Premium Access Required</h2>
+             <p>This feature requires premium access.</p>
+             <button class="back-to-login-btn" id="premium-back-btn"><i class="fas fa-arrow-left"></i> Back</button>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-university logo-icon"></i>
+                <span class="logo-text">School Sys</span>
+            </div>
+            <ul class="sidebar-menu" id="sidebar-menu">
+                <li id="nav-students" class="active"><a data-view="student-list-view"><i class="fas fa-user-graduate"></i><span class="menu-text">Students</span></a></li>
+                <li id="nav-add-result"><a data-view="add-results-view"><i class="fas fa-plus-circle"></i><span class="menu-text">Add Result</span></a></li>
+                 <li id="nav-id-cards"><a data-view="id-card-view"><i class="fas fa-id-card"></i><span class="menu-text">ID Cards</span></a></li>
+                <li class="sidebar-divider" id="sheet-divider" style="display: none;"></li>
+                <!-- Dynamic Sheet Names Appear Here -->
+            </ul>
+            <div class="sidebar-footer"><button id="sidebar-toggle" title="Toggle Sidebar"><i class="fas fa-bars"></i></button></div>
+        </aside>
+
+        <main id="main-content">
+            <header id="top-header">
+                 <button id="sidebar-toggle-mobile" style="display: none;"><i class="fas fa-bars"></i></button>
+                <div class="header-title" id="main-header-title">Students Management</div>
+                 <div class="header-actions">
+                    <!-- PDF Download Button (Context Sensitive) -->
+                     <button id="download-pdf-btn" style="display: none;" title="Download Current View as PDF">
+                         <i class="fas fa-file-pdf"></i> Download PDF
+                     </button>
+                    <span id="user-greeting"></span>
+                     <button class="logout-button" id="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+                 </div>
+            </header>
+
+            <div class="content-wrapper">
+
+                <!-- Student List View -->
+                <section id="student-list-view" class="view-section active">
+                     <div class="view-header">
+                         <div class="title-text"><i class="fas fa-user-graduate"></i> Students Management</div>
+                         <div class="header-action-buttons"></div> <!-- Buttons added dynamically -->
+                     </div>
+                    <div class="filter-controls">
+                        <label for="class-filter"><i class="fas fa-filter"></i> Filter by Class:</label>
+                        <select id="class-filter"><option value="all">All Classes</option></select>
+                    </div>
+                    <div id="student-list-message" class="message info" style="display: none;"></div>
+                    <div class="student-table-container data-table-container">
+                        <table class="student-table data-table">
+                            <thead><tr><th>Photo</th><th>Roll No</th><th>Name</th><th>Class</th><th>Mobile</th><th>Father's Name</th><th>Action</th></tr></thead>
+                            <tbody id="student-table-body"><tr><td colspan="7" style="text-align:center; padding: 30px; color: #888;">Loading...</td></tr></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Add Results View -->
+                 <section id="add-results-view" class="view-section">
+                     <div class="view-header"><div class="title-text"><i class="fas fa-plus-circle"></i> Add New Result</div></div>
+                      <div id="add-results-message" class="message" style="display: none;"></div>
+                      <div id="step1-result-details" class="form-step"><h4>Step 1: Result & Subject Details</h4><div class="input-group"><label for="result-name">Result Name:</label><input type="text" id="result-name"></div><div class="input-group"><label for="school-name">School Name:</label><input type="text" id="school-name"></div><div class="input-group"><label for="teacher-name">Teacher's Name:</label><input type="text" id="teacher-name"></div><div class="input-group"><label for="result-class">Select Class:</label><select id="result-class"><option value="" disabled selected>-- Select --</option></select></div><div id="subjects-container"><label>Subjects:</label><div class="subject-entry"><input type="text" class="subject-name"><input type="number" class="total-marks marks-input" placeholder="Total" min="1"><input type="number" class="pass-marks marks-input" placeholder="Pass" min="0"><button type="button" class="remove-subject-btn" onclick="removeSubject(this)" style="visibility: hidden;"><i class="fas fa-times-circle"></i></button></div></div><button type="button" class="add-subject-btn" id="add-subject-btn"><i class="fas fa-plus"></i> Add Subject</button><div class="step-navigation" style="justify-content: flex-end;"><button type="button" class="next-step-btn" id="next-to-step2-btn">Next <i class="fas fa-arrow-right"></i></button></div></div>
+                       <div id="step2-select-student" class="form-step" style="display: none;"><h4>Step 2: Select Student (Class: <strong id="selected-class-info"></strong>)</h4><p style="font-size:.9rem;color:#666;margin-bottom:15px">Click student to enter marks. <i class="fas fa-check-circle" style="color:var(--success-color);"></i> indicates saved.</p><div id="results-student-list"><p class="message info">Loading...</p></div><div class="step-navigation"><button type="button" class="prev-step-btn" id="back-to-step1-btn"><i class="fas fa-arrow-left"></i> Back</button></div></div>
+                       <div id="step3-enter-marks" class="form-step" style="display: none;"><div id="marks-entry-container"><h5>Marks for: <strong id="selected-student-info"></strong></h5><form id="marks-entry-form" novalidate><p class="message info">Loading...</p></form><div id="marks-entry-message" class="message" style="display: none;"></div></div><div class="step-navigation"><button type="button" class="prev-step-btn" id="back-to-step2-btn"><i class="fas fa-arrow-left"></i> Back</button><button type="button" class="submit-result-btn" id="submit-marks-btn">Save <i class="fas fa-save"></i></button></div></div>
+                 </section>
+
+                 <!-- ID Card Generator View -->
+                 <section id="id-card-view" class="view-section">
+                      <div class="view-header">
+                          <div class="title-text"><i class="fas fa-id-card"></i> ID Card Generator</div>
+                      </div>
+                      <div class="action-bar">
+                           <button id="generate-id-cards-btn" class="save-btn"><i class="fas fa-cogs"></i> Generate All ID Cards</button>
+                           <button id="print-id-cards-btn" class="cancel-btn" style="display: none;"><i class="fas fa-print"></i> Print ID Cards</button>
+                      </div>
+                       <div id="id-card-message" class="message info" style="display: none;"></div>
+                       <div id="id-card-preview-area">
+                           <!-- ID Cards will be rendered here -->
+                           <p style="color: #888;">Click "Generate All ID Cards" to preview.</p>
+                       </div>
+                       <!-- Hidden container for printing -->
+                       <div id="id-card-print-container"></div>
+                 </section>
+
+                <!-- Generic Sheet View -->
+                <section id="generic-sheet-view" class="view-section">
+                     <div class="view-header">
+                         <div class="title-text" id="generic-view-title"><i class="far fa-file-alt"></i> Sheet View</div>
+                          <div class="header-action-buttons"></div> <!-- Buttons added dynamically -->
+                     </div>
+                     <div id="generic-sheet-message" class="message info" style="display: none;"></div>
+                     <div id="generic-table-container" class="data-table-container">
+                         <table id="generic-data-table" class="data-table">
+                             <thead><tr id="generic-table-header-row"></tr></thead>
+                             <tbody id="generic-table-body"><tr><td colspan="1" style="text-align:center; padding: 30px; color: #888;">Select a sheet from the menu.</td></tr></tbody>
+                         </table>
+                     </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div id="editStudentModal" class="modal"><div class="modal-content modal-lg"><div class="modal-header"><h3><i class="fas fa-user-edit"></i> Edit Student</h3><button class="close-btn" onclick="closeModal('editStudentModal')">&times;</button></div><div class="modal-body"><form id="edit-student-form" novalidate><input type="hidden" id="edit-student-id"><div class="form-grid"><div class="input-group"><label for="edit-rollNumber">Roll No:</label><input type="text" id="edit-rollNumber" required></div><div class="input-group"><label for="edit-name">Name:</label><input type="text" id="edit-name" required></div><div class="input-group"><label for="edit-class">Class:</label><select id="edit-class" required><option value="" disabled selected>-- Select --</option></select></div><div class="input-group"><label for="edit-mobile">Mobile:</label><input type="tel" id="edit-mobile"></div><div class="input-group"><label for="edit-gmail">Gmail:</label><input type="email" id="edit-gmail"></div><div class="input-group"><label for="edit-password">New Password:</label><input type="text" id="edit-password" placeholder="Leave blank"></div><div class="input-group"><label for="edit-fatherName">Father:</label><input type="text" id="edit-fatherName"></div><div class="input-group"><label for="edit-motherName">Mother:</label><input type="text" id="edit-motherName"></div><div class="input-group"><label for="edit-address">Address:</label><input type="text" id="edit-address"></div><div class="input-group"><label for="edit-photoURL">Photo URL:</label><input type="url" id="edit-photoURL"></div><div class="input-group"><label for="edit-aadhar">Aadhar:</label><input type="text" id="edit-aadhar"></div><div class="input-group"><label for="edit-gender">Gender:</label><select id="edit-gender"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div></div></form></div><div class="modal-footer"><div id="edit-student-message" class="message" style="display:none;margin-bottom:10px;"></div><button type="button" class="cancel-btn" onclick="closeModal('editStudentModal')"><i class="fas fa-times"></i> Cancel</button><button type="button" class="save-btn" id="save-student-changes-btn"><i class="fas fa-save"></i> Save</button></div></div></div>
+
+     <!-- Edit Generic Row Modal -->
+    <div id="genericEditModal" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="generic-edit-modal-title"><i class="fas fa-edit"></i> Edit Row</h3><button class="close-btn" onclick="closeModal('genericEditModal')">&times;</button></div><div class="modal-body"><form id="generic-edit-form" novalidate><input type="hidden" id="generic-edit-sheetname"><input type="hidden" id="generic-edit-rowindex"><div id="generic-edit-form-fields" class="form-grid"><p>Loading...</p></div></form></div><div class="modal-footer"><div id="generic-edit-message" class="message" style="display:none;margin-bottom:10px;"></div><button type="button" class="cancel-btn" onclick="closeModal('genericEditModal')"><i class="fas fa-times"></i> Cancel</button><button type="button" class="save-btn" id="save-generic-changes-btn"><i class="fas fa-save"></i> Save</button></div></div></div>
+
+     <!-- ID Card Template (Hidden) -->
+     <template id="id-card-template">
+        <div class="id-card">
+            <div class="id-card-header">
+                <h4 data-field="schoolName">SCHOOL NAME HERE</h4>
+                <span>Student Identity Card</span>
+            </div>
+            <div class="id-card-body">
+                <div data-field="photo" class="id-card-photo-container"> <!-- Placeholder for photo or img --> </div>
+                <div class="id-card-details">
+                    <p><strong >Name:</strong> <span data-field="Name"></span></p>
+                    <p><strong >Class:</strong> <span data-field="ClassNameWithSection"></span></p>
+                    <p><strong >Roll No:</strong> <span data-field="RollNumber"></span></p>
+                    <p><strong >Father:</strong> <span data-field="FatherName"></span></p>
+                    <p><strong >Mobile:</strong> <span data-field="Mobile"></span></p>
+                    <p><strong >Address:</strong> <span data-field="Address"></span></p>
+                 </div>
+            </div>
+             <div class="id-card-qr-code" data-field="qrCode">
+                 <!-- QR Code will be generated here -->
+             </div>
+        </div>
+     </template>
+
+
+    <script>
+        // --- Constants and Global State ---
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbw54-U6H8ywYEufUP7NcgymA87iRCTJtXjClTjN0wu5sqiB_TZI_ryTfgO0JlSNVp8Uww/exec'; // <-- YOUR URL
+        let schoolSpreadsheetId = null;
+        let studentsData = [];
+        let classMapping = {}; // Stores { ClassID: { name: '...', section: '...', displayName: '...' } }
+        let currentResultConfig = null;
+        let currentStudentForResult = null;
+        let studentsWithResults = new Set();
+        let currentGenericSheetName = null; // Track displayed generic sheet
+        let currentGenericHeaders = [];
+        let currentGenericData = []; // Array of {rowIndex, values}
+        let currentView = 'student-list-view';
+        const { jsPDF } = window.jspdf; // Destructure jsPDF
+
+        // --- DOM Element Cache (Simplified) ---
+        const D = { // Use shorthand D for DOMElements
+             loadingOverlay: document.getElementById('loading-overlay'), loginContainer: document.getElementById('login-container'),
+             loginSection: document.getElementById('login-section'), premiumInfoSection: document.getElementById('premium-info-section'),
+             appContainer: document.getElementById('app-container'), loginForm: document.getElementById('login-form'),
+             mobileInput: document.getElementById('mobile'), passwordInput: document.getElementById('password'),
+             loginMessage: document.getElementById('login-message'), premiumBackBtn: document.getElementById('premium-back-btn'),
+             sidebar: document.getElementById('sidebar'), sidebarMenu: document.getElementById('sidebar-menu'),
+             sidebarToggle: document.getElementById('sidebar-toggle'), sidebarToggleMobile: document.getElementById('sidebar-toggle-mobile'),
+             sheetDivider: document.getElementById('sheet-divider'), topHeader: document.getElementById('top-header'),
+             mainHeaderTitle: document.getElementById('main-header-title'), userGreeting: document.getElementById('user-greeting'),
+             logoutBtn: document.getElementById('logout-btn'), mainContent: document.getElementById('main-content'),
+             viewSections: document.querySelectorAll('.view-section'), studentListView: document.getElementById('student-list-view'),
+             addResultsView: document.getElementById('add-results-view'), genericSheetView: document.getElementById('generic-sheet-view'),
+             idCardView: document.getElementById('id-card-view'),
+             classFilter: document.getElementById('class-filter'), studentTableBody: document.getElementById('student-table-body'),
+             studentListMessage: document.getElementById('student-list-message'),
+             editStudentModal: document.getElementById('editStudentModal'), editStudentForm: document.getElementById('edit-student-form'),
+             editStudentMessage: document.getElementById('edit-student-message'), saveStudentChangesBtn: document.getElementById('save-student-changes-btn'),
+             editClassSelect: document.getElementById('edit-class'),
+             step1ResultDetails: document.getElementById('step1-result-details'), step2SelectStudent: document.getElementById('step2-select-student'),
+             step3EnterMarks: document.getElementById('step3-enter-marks'), resultNameInput: document.getElementById('result-name'),
+             schoolNameInput: document.getElementById('school-name'), teacherNameInput: document.getElementById('teacher-name'),
+             resultClassSelect: document.getElementById('result-class'), subjectsContainer: document.getElementById('subjects-container'),
+             addSubjectBtn: document.getElementById('add-subject-btn'), nextToStep2Btn: document.getElementById('next-to-step2-btn'),
+             backToStep1Btn: document.getElementById('back-to-step1-btn'), backToStep2Btn: document.getElementById('back-to-step2-btn'),
+             submitMarksBtn: document.getElementById('submit-marks-btn'), resultsStudentList: document.getElementById('results-student-list'),
+             selectedClassInfo: document.getElementById('selected-class-info'), selectedStudentInfo: document.getElementById('selected-student-info'),
+             marksEntryContainer: document.getElementById('marks-entry-container'), marksEntryForm: document.getElementById('marks-entry-form'),
+             marksEntryMessage: document.getElementById('marks-entry-message'), addResultsMessage: document.getElementById('add-results-message'),
+             genericSheetMessage: document.getElementById('generic-sheet-message'), genericTableContainer: document.getElementById('generic-table-container'),
+             genericDataTable: document.getElementById('generic-data-table'), genericTableHeaderRow: document.getElementById('generic-table-header-row'),
+             genericTableBody: document.getElementById('generic-table-body'), genericEditModal: document.getElementById('genericEditModal'),
+             genericEditModalTitle: document.getElementById('generic-edit-modal-title'), genericEditForm: document.getElementById('generic-edit-form'),
+             genericEditFormFields: document.getElementById('generic-edit-form-fields'), genericEditMessage: document.getElementById('generic-edit-message'),
+             saveGenericChangesBtn: document.getElementById('save-generic-changes-btn'), genericEditSheetNameInput: document.getElementById('generic-edit-sheetname'),
+             genericEditRowIndexInput: document.getElementById('generic-edit-rowindex'), genericViewTitle: document.getElementById('generic-view-title'),
+             downloadPdfBtn: document.getElementById('download-pdf-btn'), // Context sensitive PDF button
+              // ID Card Elements
+             idCardMessage: document.getElementById('id-card-message'),
+             generateIdCardsBtn: document.getElementById('generate-id-cards-btn'),
+             printIdCardsBtn: document.getElementById('print-id-cards-btn'),
+             idCardPreviewArea: document.getElementById('id-card-preview-area'),
+             idCardPrintContainer: document.getElementById('id-card-print-container'),
+             idCardTemplate: document.getElementById('id-card-template'),
+        };
+
+        // --- Utility Functions ---
+        const showLoading = () => D.loadingOverlay.classList.add('show');
+        const hideLoading = () => D.loadingOverlay.classList.remove('show');
+        function showMessage(el, txt, type = 'error') { if (!el) return; const icon = type==='error'?'fa-times-circle':type==='success'?'fa-check-circle':type==='warning'?'fa-exclamation-triangle':'fa-info-circle'; el.innerHTML = `<i class="fas ${icon} fa-message-icon"></i> ${txt}`; el.className = `message ${type}`; el.style.display = 'flex'; if (type === 'success') setTimeout(() => hideMessage(el), 4000); }
+        function hideMessage(el) { if (!el) return; el.style.display = 'none'; el.innerHTML = ''; el.className = 'message'; }
+        const sanitizeHTML = str => { const tmp=document.createElement('div'); tmp.textContent=str||''; return tmp.innerHTML; };
+        function closeModal(modalId) { const modal = document.getElementById(modalId); if(modal) modal.style.display = 'none'; }
+         function getStudentPhotoHtml(url, className = 'student-photo') { const ph = `<div class="${className}-placeholder"><i class="fas fa-user"></i></div>`; if (!url || typeof url !== 'string' || !url.trim()) return ph; try { new URL(url); return `<img src="${sanitizeHTML(url)}" alt="Photo" class="${className}" onerror="this.outerHTML = '${ph.replace(/"/g, '\\"')}';">`; } catch (_) { return ph; } }
+
+        // --- API Call ---
+        async function callAppsScript(action, payload = {}) { /* Same as previous version */
+            showLoading(); if (schoolSpreadsheetId && !payload.spreadsheetId && action !== 'login') payload.spreadsheetId = schoolSpreadsheetId;
+            try {
+                const res = await fetch(GAS_URL, { method: 'POST', mode: 'cors', credentials: 'omit', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, ...payload }) });
+                if (!res.ok) { let eTxt=`HTTP ${res.status}`; try { eTxt+=` - ${(await res.text()).substring(0,200)}`; } catch (e) {} throw new Error(eTxt); }
+                const result = await res.json(); hideLoading(); return result;
+            } catch (err) { console.error(`API Error (${action}):`, err); hideLoading(); let msgEl=D.loginMessage; if(D.appContainer.classList.contains('visible')){ const modal = document.querySelector('.modal[style*="block"]'); if(modal) msgEl=modal.querySelector('.message'); else msgEl=document.getElementById(`${currentView.replace(/-/g,'')}-message`) || D.studentListMessage; } showMessage(msgEl, `Network/Server Error: ${err.message}`, 'error'); return { success: false, error: err.message }; }
+        }
+
+        // --- Login/Logout/View Handling ---
+        function showLoginView() { /* Same as previous */ D.loginContainer.classList.remove('hidden'); D.appContainer.classList.remove('visible'); D.loginSection.style.display='block'; D.premiumInfoSection.style.display='none'; D.loginForm.reset(); hideMessage(D.loginMessage); schoolSpreadsheetId=null; studentsData=[]; classMapping={}; currentResultConfig=null; currentStudentForResult=null; studentsWithResults.clear(); currentGenericHeaders=[]; currentGenericData=[]; clearDynamicMenuItems(); setActiveMenuItem('nav-students'); switchView('student-list-view','Students Management'); }
+        function showAppView() { D.loginContainer.classList.add('hidden'); D.appContainer.classList.add('visible'); if (studentsData.length === 0) loadInitialData(); else loadSheetNames(); }
+        function showPremiumView() { D.loginSection.style.display='none'; D.premiumInfoSection.style.display='block'; }
+        D.loginForm.addEventListener('submit', async (e) => { /* Same as previous */ e.preventDefault(); hideMessage(D.loginMessage); const m=D.mobileInput.value.trim(), p=D.passwordInput.value.trim(); if(!m||!p){showMessage(D.loginMessage,'Credentials required.','warning');return;} const r=await callAppsScript('login',{mobile:m,password:p}); if(r?.success&&r.spreadsheetId){schoolSpreadsheetId=r.spreadsheetId;showAppView();} else if(r?.reason==='not_premium'){showPremiumView();} else{showMessage(D.loginMessage,r?.message||r?.error||'Login failed.','error');} });
+        D.premiumBackBtn.addEventListener('click', () => { D.premiumInfoSection.style.display='none'; D.loginSection.style.display='block'; D.loginForm.reset(); hideMessage(D.loginMessage); });
+        D.logoutBtn.addEventListener('click', () => { if(confirm("Logout?")) showLoginView(); });
+        function toggleSidebar() { D.sidebar.classList.toggle('collapsed'); }
+        D.sidebarToggle.addEventListener('click', toggleSidebar); D.sidebarToggleMobile.addEventListener('click', () => D.sidebar.classList.toggle('open'));
+        D.mainContent.addEventListener('click', () => { if (window.innerWidth <= 768 && D.sidebar.classList.contains('open')) D.sidebar.classList.remove('open'); });
+        function setActiveMenuItem(navId) { D.sidebarMenu.querySelectorAll('li').forEach(li => li.classList.remove('active')); const item = document.getElementById(navId); if(item) item.classList.add('active'); }
+        function switchView(viewId, title, navId) { D.viewSections.forEach(s => s.classList.remove('active')); const target = document.getElementById(viewId); if (target) { target.classList.add('active'); currentView = viewId; D.mainHeaderTitle.textContent = title || 'Dashboard'; if (navId) setActiveMenuItem(navId); else setActiveMenuItem(`nav-${viewId.split('-')[0]}`); if (window.innerWidth <= 768 && D.sidebar.classList.contains('open')) D.sidebar.classList.remove('open'); updatePdfButtonVisibility(viewId); } else console.error(`View "${viewId}" not found.`); }
+        D.sidebarMenu.addEventListener('click', (e) => { const link = e.target.closest('a[data-view]'); if (link) { e.preventDefault(); const viewId = link.dataset.view; const sheetName = link.dataset.sheetName; const navId = link.closest('li').id; let title = link.querySelector('.menu-text')?.textContent || 'View'; switchView(viewId, title, navId); if (viewId === 'generic-sheet-view' && sheetName) loadGenericSheetData(sheetName); } });
+
+        // --- Initial Data Loading ---
+        async function loadInitialData() {
+            await loadStudents(); // Load students (includes class mapping)
+            await loadSheetNames(); // Load sheet names for menu
+        }
+
+        // --- Dynamic Menu ---
+        function clearDynamicMenuItems() { D.sidebarMenu.querySelectorAll('.dynamic-sheet-item').forEach(item => item.remove()); D.sheetDivider.style.display = 'none'; }
+        async function loadSheetNames() { /* Same as previous */ if(!schoolSpreadsheetId) return; const result = await callAppsScript('getSheetNames'); if(result?.success && result.data){ clearDynamicMenuItems(); const frag=document.createDocumentFragment(); let added=false; result.data.forEach(name => { const li=document.createElement('li'); li.className='dynamic-sheet-item'; li.id=`nav-sheet-${name.replace(/[^a-zA-Z0-9]/g,'-')}`; li.innerHTML=`<a data-view="generic-sheet-view" data-sheet-name="${sanitizeHTML(name)}"><i class="far fa-file-alt"></i><span class="menu-text">${sanitizeHTML(name)}</span></a>`; frag.appendChild(li); added=true; }); if(added){ D.sheetDivider.style.display='block'; D.sidebarMenu.appendChild(frag); } } else console.error("Failed to load sheet names:", result?.error); }
+
+        // --- Student Data (Handles Class Mapping) ---
+        async function loadStudents() {
+             if (!schoolSpreadsheetId) return;
+             showMessage(D.studentListMessage, 'Loading students...', 'info');
+             D.studentTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#888;">Loading...</td></tr>';
+             D.classFilter.innerHTML = '<option value="all">All Classes</option>';
+             D.resultClassSelect.innerHTML = '<option value="" disabled selected>-- Select --</option>';
+             D.editClassSelect.innerHTML = '<option value="" disabled selected>-- Select --</option>';
+
+             const result = await callAppsScript('getStudents'); // Calls getStudentsDataWithClassMapping
+             if (result?.success && result.data) {
+                hideMessage(D.studentListMessage);
+                studentsData = result.data.students || [];
+                classMapping = result.data.classes || {}; // Store class mapping globally
+
+                if (studentsData.length === 0) {
+                     showMessage(D.studentListMessage, 'No student data found.', 'info');
+                      D.studentTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#888;">No students found.</td></tr>';
+                } else {
+                     populateClassDropdownsBasedOnMapping(); // Use mapping for dropdowns
+                     filterAndDisplayStudents(); // Display using mapped names
+                }
+             } else {
+                 showMessage(D.studentListMessage, result?.error || 'Failed to load students.', 'error');
+                 D.studentTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--error-color);">Failed to load data.</td></tr>';
+             }
+        }
+
+        function populateClassDropdownsBasedOnMapping() {
+             const fragFilter = document.createDocumentFragment();
+             const fragResult = document.createDocumentFragment();
+             const fragEdit = document.createDocumentFragment();
+
+            // Create options from the classMapping object keys (Class IDs) and display names
+            const sortedClassIds = Object.keys(classMapping).sort((a, b) => {
+                const nameA = classMapping[a].displayName || a;
+                const nameB = classMapping[b].displayName || b;
+                return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
+             sortedClassIds.forEach(classId => {
+                 const displayName = classMapping[classId].displayName;
+                 const option = document.createElement('option');
+                 option.value = classId; // Value is the ID
+                 option.textContent = displayName; // Text is the Name + Section
+                 fragFilter.appendChild(option.cloneNode(true));
+                 fragResult.appendChild(option.cloneNode(true));
+                 fragEdit.appendChild(option.cloneNode(true));
+             });
+
+             // Append fragments only if there are classes
+             if(sortedClassIds.length > 0) {
+                 D.classFilter.appendChild(fragFilter);
+                 D.resultClassSelect.appendChild(fragResult);
+                 D.editClassSelect.appendChild(fragEdit);
+             }
+        }
+
+        function filterAndDisplayStudents() {
+             const selectedClassId = D.classFilter.value; // Value is Class ID
+             const filteredStudents = (selectedClassId === 'all') ? studentsData : studentsData.filter(s => String(s.Class || '').trim() === selectedClassId);
+             populateStudentTable(filteredStudents); // Will use ClassNameWithSection for display
+             if (filteredStudents.length === 0 && studentsData.length > 0) showMessage(D.studentListMessage, `No students found for selected class.`, 'info');
+             else if (studentsData.length > 0) hideMessage(D.studentListMessage);
+        }
+
+        function populateStudentTable(dataToDisplay) { // Uses 'ClassNameWithSection'
+             D.studentTableBody.innerHTML = '';
+             if (dataToDisplay.length === 0) { D.studentTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:#888;">No students.</td></tr>'; return; }
+             const frag = document.createDocumentFragment();
+             dataToDisplay.forEach(s => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${getStudentPhotoHtml(s.PhotoURL,'student-photo')}</td><td>${sanitizeHTML(s.RollNumber||'N/A')}</td><td>${sanitizeHTML(s.Name||'N/A')}</td><td>${sanitizeHTML(s.ClassNameWithSection||s.Class||'N/A')}</td><td>${sanitizeHTML(s.Mobile||'N/A')}</td><td>${sanitizeHTML(s.FatherName||'N/A')}</td><td class="action-col"><i class="fas fa-edit edit-btn" title="Edit" data-studentid="${sanitizeHTML(s.StudentID)}"></i></td>`; frag.appendChild(tr); });
+             D.studentTableBody.appendChild(frag);
+        }
+        D.classFilter.addEventListener('change', filterAndDisplayStudents);
+
+         // --- Edit Student Modal ---
+         D.studentTableBody.addEventListener('click', (e)=>{if(e.target?.classList.contains('edit-btn')){const id=e.target.dataset.studentid; if(id)openEditModal(id);}});
+        function openEditModal(studentId) { /* Uses Class ID for select value */
+            hideMessage(D.editStudentMessage); const student = studentsData.find(s => String(s.StudentID) === String(studentId)); if (!student) { console.error("Student not found:", studentId); showMessage(D.studentListMessage, 'Student not found.', 'error'); return; }
+            D.editStudentForm.reset(); D.editStudentModal.style.display = 'block';
+            document.getElementById('edit-student-id').value=student.StudentID; document.getElementById('edit-rollNumber').value=student.RollNumber||''; document.getElementById('edit-name').value=student.Name||''; D.editClassSelect.value=student.Class||''; document.getElementById('edit-mobile').value=student.Mobile||''; document.getElementById('edit-gmail').value=student.Gmail||''; document.getElementById('edit-password').value=''; document.getElementById('edit-fatherName').value=student.FatherName||''; document.getElementById('edit-motherName').value=student.MotherName||''; document.getElementById('edit-address').value=student.Address||''; document.getElementById('edit-photoURL').value=student.PhotoURL||''; document.getElementById('edit-aadhar').value=student.Aadhar||''; document.getElementById('edit-gender').value=student.Gender||'Male';
+        }
+        D.saveStudentChangesBtn.addEventListener('click', async () => { /* Saves Class ID */
+              hideMessage(D.editStudentMessage); const name=document.getElementById('edit-name').value.trim(), roll=document.getElementById('edit-rollNumber').value.trim(), classId=D.editClassSelect.value; if(!name||!roll||!classId){showMessage(D.editStudentMessage,'Roll, Name, Class required.','error');return;} const id=document.getElementById('edit-student-id').value; const data={StudentID:id,RollNumber:roll,Name:name,Class:classId,Mobile:document.getElementById('edit-mobile').value.trim(),Gmail:document.getElementById('edit-gmail').value.trim(),Password:document.getElementById('edit-password').value.trim()||undefined,FatherName:document.getElementById('edit-fatherName').value.trim(),MotherName:document.getElementById('edit-motherName').value.trim(),Address:document.getElementById('edit-address').value.trim(),PhotoURL:document.getElementById('edit-photoURL').value.trim(),Aadhar:document.getElementById('edit-aadhar').value.trim(),Gender:document.getElementById('edit-gender').value}; if(data.Password===undefined)delete data.Password; const r=await callAppsScript('editStudent',{studentData:data}); if(r?.success){showMessage(D.editStudentMessage,r.message||'Updated!','success');const i=studentsData.findIndex(s=>String(s.StudentID)===String(id));if(i!==-1){const dispData={...data};delete dispData.Password;const mapped=classMapping[dispData.Class];dispData.ClassNameWithSection=mapped?mapped.displayName:(dispData.Class||'N/A');studentsData[i]={...studentsData[i],...dispData};}filterAndDisplayStudents();setTimeout(()=>closeModal('editStudentModal'),1500);}else{showMessage(D.editStudentMessage,r?.error||'Update failed.','error');}
+         });
+
+        // --- Add Results Logic ---
+        // Reset, ShowStep, AddSubject, RemoveSubject: Same as before
+         function resetAddResultsForm(){D.addResultsForm?.reset();D.resultNameInput.value='';D.schoolNameInput.value='';D.teacherNameInput.value='';D.resultClassSelect.value='';D.subjectsContainer.innerHTML=`<label>Subjects:</label><div class="subject-entry"><input type="text" class="subject-name"><input type="number" class="total-marks marks-input" placeholder="Total" min="1"><input type="number" class="pass-marks marks-input" placeholder="Pass" min="0"><button type="button" class="remove-subject-btn" onclick="removeSubject(this)" style="visibility:hidden;"><i class="fas fa-times-circle"></i></button></div>`;D.resultsStudentList.innerHTML='';D.marksEntryForm.innerHTML='';currentResultConfig=null;currentStudentForResult=null;studentsWithResults.clear();hideMessage(D.addResultsMessage);hideMessage(D.marksEntryMessage);showStep(1);}
+         function showStep(step){D.step1ResultDetails.style.display=step===1?'block':'none';D.step2SelectStudent.style.display=step===2?'block':'none';D.step3EnterMarks.style.display=step===3?'block':'none';if(step!==3)currentStudentForResult=null;if(step===2)D.resultsStudentList.querySelectorAll('.selected').forEach(i=>i.classList.remove('selected'));}
+         D.addSubjectBtn.addEventListener('click',()=>{const e=document.createElement('div');e.className='subject-entry';e.innerHTML=`<input type="text" class="subject-name"><input type="number" class="total-marks marks-input" placeholder="Total" min="1"><input type="number" class="pass-marks marks-input" placeholder="Pass" min="0"><button type="button" class="remove-subject-btn" onclick="removeSubject(this)"><i class="fas fa-times-circle"></i></button>`;const b=D.subjectsContainer.querySelector('.remove-subject-btn');if(b)b.style.visibility='visible';D.subjectsContainer.appendChild(e);e.querySelector('.subject-name').focus();});
+         function removeSubject(btn){const c=D.subjectsContainer, e=c.querySelectorAll('.subject-entry');if(e.length>1){btn.closest('.subject-entry').remove();if(c.querySelectorAll('.subject-entry').length===1){const b=c.querySelector('.remove-subject-btn');if(b)b.style.visibility='hidden';}}else{showMessage(D.addResultsMessage,"Must have 1+ subject.","warning");}}
+         // NextToStep2: Use Class ID from dropdown value
+          D.nextToStep2Btn.addEventListener('click',()=>{hideMessage(D.addResultsMessage);const name=D.resultNameInput.value.trim(),sch=D.schoolNameInput.value.trim(),tch=D.teacherNameInput.value.trim(),clsId=D.resultClassSelect.value;/*VALUE is Class ID*/ const subjects=[];let valid=true,firstInv=null;D.subjectsContainer.querySelectorAll('.subject-entry').forEach(e=>{const nI=e.querySelector('.subject-name'),tI=e.querySelector('.total-marks'),pI=e.querySelector('.pass-marks');const n=nI.value.trim(),t=tI.value.trim(),p=pI.value.trim();let eV=true;[nI,tI,pI].forEach(el=>el.classList.remove('invalid'));if(!n){eV=false;nI.classList.add('invalid');if(!firstInv)firstInv=nI;}if(!t||isNaN(t)||Number(t)<=0){eV=false;tI.classList.add('invalid');if(!firstInv)firstInv=tI;}if(!p||isNaN(p)||Number(p)<0||Number(p)>Number(t)){eV=false;pI.classList.add('invalid');if(!firstInv)firstInv=pI;}if(eV)subjects.push({name:n,total:Number(t),pass:Number(p)});else valid=false;});let err='';if(!name)err+='Name req. ';if(!clsId)err+='Class req. ';if(subjects.length===0||!valid)err+='Valid subject(s) req. ';if(err){showMessage(D.addResultsMessage,err.trim(),'error');if(firstInv)firstInv.focus();return;}const clsName=classMapping[clsId]?.displayName||clsId;currentResultConfig={resultName:name,schoolName:sch,teacherName:tch,className:clsId/*Store ID*/,subjects:subjects};studentsWithResults.clear();D.selectedClassInfo.textContent=clsName;loadStudentsForResultsList(clsId);showStep(2);});
+         // loadStudentsForResultsList: Use Class ID for filtering
+          function loadStudentsForResultsList(classId){D.resultsStudentList.innerHTML='<p class="message info">Loading...</p>';const clsStudents=studentsData.filter(s=>String(s.Class||'').trim()===classId);if(clsStudents.length===0){D.resultsStudentList.innerHTML='<p class="message warning">No students found.</p>';return;}D.resultsStudentList.innerHTML='';const frag=document.createDocumentFragment();clsStudents.forEach(s=>{const i=document.createElement('div');i.className='student-result-item';i.dataset.studentId=s.StudentID;i.innerHTML=`${getStudentPhotoHtml(s.PhotoURL)}<div class="student-result-info"><span><strong>${sanitizeHTML(s.Name||'N/A')}</strong></span><span>Roll: ${sanitizeHTML(s.RollNumber||'N/A')}</span></div><i class="fas fa-check-circle result-saved-indicator"></i>`;i.addEventListener('click',()=>selectStudentForMarks(i,s));frag.appendChild(i);});D.resultsStudentList.appendChild(frag);}
+          // selectStudentForMarks, generateMarksEntryForm: Same as before
+          function selectStudentForMarks(el,std){const c=D.resultsStudentList.querySelector('.selected');if(c)c.classList.remove('selected');el.classList.add('selected');hideMessage(D.marksEntryMessage);currentStudentForResult=std;if(!currentStudentForResult){console.error("Student invalid:",std);return;}D.selectedStudentInfo.textContent=`${sanitizeHTML(std.Name||'N/A')} (Roll: ${sanitizeHTML(std.RollNumber||'N/A')})`;generateMarksEntryForm();showStep(3);D.marksEntryContainer.scrollIntoView({behavior:'smooth',block:'nearest'});}
+          function generateMarksEntryForm(){D.marksEntryForm.innerHTML='';if(!currentResultConfig?.subjects?.length){D.marksEntryForm.innerHTML='<p class="message error">No subjects.</p>';return;}if(!currentStudentForResult){D.marksEntryForm.innerHTML='<p class="message error">No student selected.</p>';return;}const frag=document.createDocumentFragment();currentResultConfig.subjects.forEach(s=>{const g=document.createElement('div');g.className='marks-input-group';const id=`marks-${currentResultConfig.className}-${currentStudentForResult.StudentID}-${s.name.replace(/\s+/g,'-')}`;g.innerHTML=`<label for="${id}">${sanitizeHTML(s.name)} <span class="max-marks">(Max: ${s.total})</span>:</label><input type="number" id="${id}" class="marks-input" data-subject-name="${sanitizeHTML(s.name)}" max="${s.total}" min="0" required>`;frag.appendChild(g);});D.marksEntryForm.appendChild(frag);const fI=D.marksEntryForm.querySelector('.marks-input');if(fI)fI.focus();}
+          D.backToStep1Btn.addEventListener('click',()=>showStep(1)); D.backToStep2Btn.addEventListener('click',()=>showStep(2));
+          // Submit Marks: Sends Class ID
+          D.submitMarksBtn.addEventListener('click',async()=>{hideMessage(D.marksEntryMessage);if(!currentStudentForResult||!schoolSpreadsheetId||!currentResultConfig){showMessage(D.marksEntryMessage,'Error: Invalid state.','error');return;}const marks={};let valid=true;currentResultConfig.subjects.forEach(s=>{const id=`marks-${currentResultConfig.className}-${currentStudentForResult.StudentID}-${s.name.replace(/\s+/g,'-')}`;const inp=document.getElementById(id);if(!inp){console.error(`Input missing: ${id}`);valid=false;return;}const v=inp.value.trim(),mx=parseFloat(inp.max),mn=parseFloat(inp.min);inp.classList.remove('invalid');if(v===''||isNaN(v)||parseFloat(v)<mn||parseFloat(v)>mx){valid=false;inp.classList.add('invalid');}else{marks[s.name]=parseFloat(v);}});if(!valid){showMessage(D.marksEntryMessage,'Invalid marks.','error');const f=D.marksEntryForm.querySelector('.invalid');if(f)f.focus();return;}const payload={resultName:currentResultConfig.resultName,className:currentResultConfig.className/*Send ID*/,subjects:JSON.stringify(currentResultConfig.subjects),studentId:currentStudentForResult.StudentID,marks:JSON.stringify(marks)};const r=await callAppsScript('saveResult',payload);if(r?.success){showMessage(D.marksEntryMessage,r.message||'Saved!','success');const i=D.resultsStudentList.querySelector(`.student-result-item[data-student-id="${currentStudentForResult.StudentID}"]`);if(i)i.classList.add('has-result');studentsWithResults.add(currentStudentForResult.StudentID);setTimeout(()=>showStep(2),1500);}else{showMessage(D.marksEntryMessage,r?.error||'Save failed.','error');}});
+
+        // --- Generic Sheet Data ---
+        async function loadGenericSheetData(sheetName) { /* Same as previous version */
+             if (!schoolSpreadsheetId || !sheetName) return;
+             currentGenericSheetName = sheetName; // Store current sheet name
+             showMessage(D.genericSheetMessage, `Loading "${sanitizeHTML(sheetName)}"...`, 'info');
+             D.genericTableHeaderRow.innerHTML=''; D.genericTableBody.innerHTML=`<tr><td colspan="1" style="text-align:center;padding:30px;color:#888;">Loading...</td></tr>`;
+             currentGenericHeaders=[]; currentGenericData=[];
+             const result = await callAppsScript('getSheetData', { sheetName });
+             D.genericViewTitle.innerHTML = `<i class="far fa-file-alt"></i> ${sanitizeHTML(sheetName)}`; // Update view title
+             if(result?.success && result.data){
+                 hideMessage(D.genericSheetMessage); currentGenericHeaders=result.data.headers||[]; currentGenericData=result.data.rows||[];
+                 const headFrag=document.createDocumentFragment(); currentGenericHeaders.forEach(h=>{const th=document.createElement('th');th.textContent=sanitizeHTML(h);headFrag.appendChild(th);});
+                 if(currentGenericData.length > 0){ const thA=document.createElement('th');thA.textContent='Action';thA.style.textAlign='center';headFrag.appendChild(thA); }
+                 D.genericTableHeaderRow.appendChild(headFrag); D.genericTableBody.innerHTML='';
+                 if(currentGenericData.length === 0){ const cs=currentGenericHeaders.length||1; D.genericTableBody.innerHTML=`<tr><td colspan="${cs}" style="text-align:center;padding:30px;color:#888;">Sheet empty.</td></tr>`; }
+                 else{ const bodyFrag=document.createDocumentFragment(); currentGenericData.forEach(item=>{ const tr=document.createElement('tr'); item.values.forEach(v=>{const td=document.createElement('td');td.textContent=sanitizeHTML(v);tr.appendChild(td);}); const tdA=document.createElement('td');tdA.className='action-col';tdA.innerHTML=`<i class="fas fa-edit edit-btn-generic" title="Edit" data-sheet-name="${sanitizeHTML(sheetName)}" data-row-index="${item.rowIndex}"></i>`;tr.appendChild(tdA); bodyFrag.appendChild(tr); }); D.genericTableBody.appendChild(bodyFrag); }
+                 updatePdfButtonVisibility(currentView); // Show PDF button for generic view
+             } else { showMessage(D.genericSheetMessage, result?.error || `Failed to load "${sanitizeHTML(sheetName)}".`, 'error'); D.genericTableHeaderRow.innerHTML=''; D.genericTableBody.innerHTML=`<tr><td colspan="1" style="text-align:center;padding:30px;color:var(--error-color);">Error loading.</td></tr>`; updatePdfButtonVisibility(currentView); }
+         }
+
+        // --- Generic Edit Modal ---
+         D.genericTableBody.addEventListener('click',(e)=>{if(e.target?.classList.contains('edit-btn-generic')){const sn=e.target.dataset.sheetName,ri=e.target.dataset.rowIndex;if(sn&&ri)openGenericEditModal(sn,parseInt(ri));}});
+         function openGenericEditModal(sheetName, rowIndex) { /* Same as previous */
+            hideMessage(D.genericEditMessage); D.genericEditForm.reset(); D.genericEditFormFields.innerHTML='<p>Loading...</p>'; const rowData=currentGenericData.find(i=>i.rowIndex===rowIndex); if(!rowData||!currentGenericHeaders){console.error("Data/Headers missing", {sheetName,rowIndex}); showMessage(D.genericSheetMessage,'Error.', 'error'); return;} D.genericEditModalTitle.innerHTML=`<i class="fas fa-edit"></i> Edit Row ${rowIndex} in "${sanitizeHTML(sheetName)}"`; D.genericEditSheetNameInput.value=sheetName; D.genericEditRowIndexInput.value=rowIndex; const frag=document.createDocumentFragment(); currentGenericHeaders.forEach((h,idx)=>{ const v=rowData.values[idx]; const ig=document.createElement('div'); ig.className='input-group'; const lbl=document.createElement('label'); const id=`gen-edit-${h.replace(/[^a-zA-Z0-9]/g,'-')}-${rowIndex}`; lbl.htmlFor=id; lbl.textContent=sanitizeHTML(h)+':'; let inp; if(String(v).length>100||String(v).includes('\n')){inp=document.createElement('textarea');}else{inp=document.createElement('input');inp.type='text';} inp.id=id; inp.name=h; inp.value=v; ig.appendChild(lbl); ig.appendChild(inp); frag.appendChild(ig); }); D.genericEditFormFields.innerHTML=''; D.genericEditFormFields.appendChild(frag); D.genericEditModal.style.display='block';
+         }
+         D.saveGenericChangesBtn.addEventListener('click', async () => { /* Same as previous */
+             hideMessage(D.genericEditMessage); const sheetName=D.genericEditSheetNameInput.value,rowIndex=D.genericEditRowIndexInput.value; if(!sheetName||!rowIndex){showMessage(D.genericEditMessage,'Error: ID missing.','error');return;} const formD=new FormData(D.genericEditForm); const data={}; currentGenericHeaders.forEach(h=>{if(formD.has(h))data[h]=formD.get(h);}); const result=await callAppsScript('updateSheetRow',{sheetName:sheetName,rowIndex:parseInt(rowIndex),rowData:data}); if(result?.success){showMessage(D.genericEditMessage,result.message||'Updated!','success'); const row=D.genericTableBody.querySelector(`i[data-row-index="${rowIndex}"]`)?.closest('tr'); if(row){const cells=row.querySelectorAll('td'); currentGenericHeaders.forEach((h,i)=>{if(data.hasOwnProperty(h)&&cells[i])cells[i].textContent=sanitizeHTML(data[h]);});} const dataIdx=currentGenericData.findIndex(i=>i.rowIndex===parseInt(rowIndex)); if(dataIdx!==-1){currentGenericHeaders.forEach((h,i)=>{if(data.hasOwnProperty(h))currentGenericData[dataIdx].values[i]=data[h];});} setTimeout(()=>closeModal('genericEditModal'),1500);}else{showMessage(D.genericEditMessage,result?.error||'Update failed.','error');}
+         });
+
+        // --- ID Card Generation ---
+        D.generateIdCardsBtn.addEventListener('click', generateIDCards);
+        D.printIdCardsBtn.addEventListener('click', printIDCards);
+
+        function generateIDCards() {
+            hideMessage(D.idCardMessage);
+            D.idCardPreviewArea.innerHTML = '<p style="color: #888;">Generating...</p>';
+            D.printIdCardsBtn.style.display = 'none';
+
+            if (!studentsData || studentsData.length === 0) {
+                showMessage(D.idCardMessage, 'No student data available to generate ID cards.', 'warning');
+                D.idCardPreviewArea.innerHTML = '<p style="color: #888;">No student data loaded.</p>';
+                return;
+            }
+
+            const previewFragment = document.createDocumentFragment();
+            const printFragment = document.createDocumentFragment(); // For hidden print container
+            const templateNode = D.idCardTemplate.content.firstElementChild;
+            const schoolName = D.schoolNameInput.value.trim() || "School Name"; // Use value from Add Results or default
+
+            let generatedCount = 0;
+            studentsData.forEach(student => {
+                try {
+                    const cardClonePreview = templateNode.cloneNode(true);
+                    const cardClonePrint = templateNode.cloneNode(true);
+
+                    // Populate fields (using data attributes)
+                    cardClonePreview.querySelectorAll('[data-field]').forEach(el => {
+                        const field = el.dataset.field;
+                        if (field === 'photo') {
+                             el.innerHTML = getStudentPhotoHtml(student.PhotoURL, 'id-card-photo');
+                        } else if (field === 'qrCode') {
+                             // Generate QR Code dynamically
+                             const qrElement = document.createElement('div');
+                             qrElement.id = `qr-${student.StudentID}`; // Unique ID for QR
+                             el.appendChild(qrElement);
+                             new QRCode(qrElement, {
+                                 text: `StudentID: ${student.StudentID}`, // Content for QR code
+                                 width: 50, height: 50,
+                                 colorDark : "#000000", colorLight : "#ffffff",
+                                 correctLevel : QRCode.CorrectLevel.L // Low correction level for smaller size
+                             });
+                        } else if (field === 'schoolName') {
+                             el.textContent = sanitizeHTML(schoolName);
+                        }
+                        else {
+                            el.textContent = sanitizeHTML(student[field] || 'N/A');
+                        }
+                    });
+
+                    // Clone for print container (needs separate QR generation or copying)
+                     cardClonePrint.querySelectorAll('[data-field]').forEach(el => {
+                        const field = el.dataset.field;
+                         if (field === 'photo') el.innerHTML = getStudentPhotoHtml(student.PhotoURL, 'id-card-photo');
+                         else if (field === 'qrCode') {
+                              const qrElementPrint = document.createElement('div');
+                              el.appendChild(qrElementPrint);
+                               new QRCode(qrElementPrint, { text: `StudentID: ${student.StudentID}`, width: 50, height: 50, colorDark : "#000", colorLight : "#fff", correctLevel : QRCode.CorrectLevel.L });
+                         } else if (field === 'schoolName') { el.textContent = sanitizeHTML(schoolName); }
+                         else el.textContent = sanitizeHTML(student[field] || 'N/A');
+                    });
+
+
+                    previewFragment.appendChild(cardClonePreview);
+                    printFragment.appendChild(cardClonePrint);
+                    generatedCount++;
+                } catch (err) {
+                    console.error(`Error generating card for ${student.Name || student.StudentID}:`, err);
+                    // Optionally add an error placeholder card
+                }
+            });
+
+            D.idCardPreviewArea.innerHTML = ''; // Clear 'Generating...'
+            if (generatedCount > 0) {
+                D.idCardPreviewArea.appendChild(previewFragment);
+                D.idCardPrintContainer.innerHTML = ''; // Clear previous print content
+                D.idCardPrintContainer.appendChild(printFragment); // Populate hidden print container
+                D.printIdCardsBtn.style.display = 'inline-flex'; // Show print button
+                showMessage(D.idCardMessage, `Generated ${generatedCount} ID cards.`, 'success');
+            } else {
+                 showMessage(D.idCardMessage, 'Could not generate any ID cards.', 'error');
+                 D.idCardPreviewArea.innerHTML = '<p style="color: #888;">Card generation failed.</p>';
+            }
+        }
+
+        function printIDCards() {
+             // Use the hidden container for printing
+            if (D.idCardPrintContainer.children.length > 0) {
+                window.print(); // Triggers browser print dialog using @media print styles
+            } else {
+                showMessage(D.idCardMessage, 'No ID cards generated to print.', 'warning');
+            }
+        }
+
+
+        // --- PDF Download ---
+        D.downloadPdfBtn.addEventListener('click', downloadCurrentViewAsPDF);
+
+        function updatePdfButtonVisibility(viewId) {
+            // Show PDF button only for views with tables
+             if (viewId === 'student-list-view' || viewId === 'generic-sheet-view') {
+                 D.downloadPdfBtn.style.display = 'inline-flex';
+             } else {
+                 D.downloadPdfBtn.style.display = 'none';
+             }
+        }
+
+        function downloadCurrentViewAsPDF() {
+             let tableElement;
+             let headers = [];
+             let data = [];
+             let title = 'Data Export';
+
+             if (currentView === 'student-list-view') {
+                 tableElement = D.studentListView.querySelector('.data-table');
+                 title = 'Student List';
+                 // Get visible headers (excluding Action)
+                 headers = Array.from(tableElement.querySelectorAll('thead th'))
+                                .map(th => th.textContent.trim())
+                                .slice(0, -1); // Exclude last 'Action' column
+                 // Get data from filtered student list, excluding photo and action
+                 const selectedClassId = D.classFilter.value;
+                 const studentsToExport = (selectedClassId === 'all') ? studentsData : studentsData.filter(s => String(s.Class || '').trim() === selectedClassId);
+                 data = studentsToExport.map(s => [
+                     s.RollNumber || '', s.Name || '', s.ClassNameWithSection || '', s.Mobile || '', s.FatherName || ''
+                     // Add other relevant fields if needed, matching headers order
+                 ]);
+
+             } else if (currentView === 'generic-sheet-view' && currentGenericSheetName) {
+                  tableElement = D.genericSheetView.querySelector('.data-table');
+                  title = `${currentGenericSheetName} Data`;
+                  // Use currentGenericHeaders (excluding Action if present)
+                   headers = currentGenericHeaders;
+                   const actionColIndex = headers.indexOf('Action');
+                   if (actionColIndex > -1) headers = headers.slice(0, actionColIndex);
+                  // Use currentGenericData (excluding Action cell value if present)
+                  data = currentGenericData.map(rowItem => {
+                      return actionColIndex > -1 ? rowItem.values.slice(0, actionColIndex) : rowItem.values;
+                  });
+
+             } else {
+                  alert("PDF download not available for this view.");
+                  return;
+             }
+
+             if (!tableElement || data.length === 0) {
+                 alert("No data available to download.");
+                 return;
+             }
+
+             try {
+                 showLoading();
+                 const doc = new jsPDF();
+
+                 doc.setFontSize(16);
+                 doc.text(title, 14, 16); // Title for the PDF
+
+                 // Use autoTable for generating the table
+                 doc.autoTable({
+                     head: [headers], // Header row
+                     body: data,      // Data rows
+                     startY: 22,      // Y position to start the table
+                     theme: 'grid',   // Style theme (grid, striped, plain)
+                     styles: {
+                         fontSize: 8,
+                         cellPadding: 2,
+                         overflow: 'linebreak' // Handle cell overflow
+                     },
+                     headStyles: {
+                         fillColor: [52, 152, 219], // Header background color (Primary color)
+                         textColor: 255, // Header text color (White)
+                         fontStyle: 'bold'
+                     },
+                     columnStyles: {
+                         // Add specific column widths if needed, e.g., 0: { cellWidth: 20 },
+                     },
+                     didDrawPage: function (data) {
+                        // Footer - Optional: Add page number
+                         doc.setFontSize(8);
+                         doc.text('Page ' + doc.internal.getNumberOfPages(), data.settings.margin.left, doc.internal.pageSize.height - 10);
+                     }
+                 });
+
+                 doc.save(`${title.replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`); // Save the PDF
+                 hideLoading();
+             } catch (error) {
+                 console.error("Error generating PDF:", error);
+                 alert("An error occurred while generating the PDF.");
+                 hideLoading();
+             }
+         }
+
+        // --- Modal Closing & Init ---
+        function closeModal(modalId) { const modal=document.getElementById(modalId); if(modal) modal.style.display='none'; }
+        window.addEventListener('click', (e)=>{ if(e.target.classList.contains('modal')) closeModal(e.target.id); });
+        window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ closeModal('editStudentModal'); closeModal('genericEditModal'); } });
+        document.addEventListener('DOMContentLoaded', () => { if (GAS_URL==='YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL'||!GAS_URL){console.error("FATAL: GAS URL missing!"); document.body.innerHTML=`<div style="padding:30px;text-align:center;background-color:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:8px;margin:50px auto;max-width:600px;"><h2>Config Error</h2><p>GAS URL missing.</p></div>`;} else{ showLoginView(); } const mt=D.sidebarToggleMobile; if(window.innerWidth<=768){mt.style.display='block';D.sidebar.classList.add('collapsed');}else{mt.style.display='none';} });
+        window.addEventListener('resize',()=>{const mt=D.sidebarToggleMobile; if(window.innerWidth<=768){mt.style.display='block';if(!D.sidebar.classList.contains('open'))D.sidebar.classList.add('collapsed');}else{mt.style.display='none';D.sidebar.classList.remove('open');}});
+
+    </script>
+</body>
+</html>
+```
